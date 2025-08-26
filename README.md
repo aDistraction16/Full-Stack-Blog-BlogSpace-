@@ -2,6 +2,8 @@
 
 A modern blog platform built with Django REST Framework and React, using PostgreSQL database.
 
+![Home Page Screenshot](homepage.png)
+
 ## Prerequisites
 
 - Python 3.8+
