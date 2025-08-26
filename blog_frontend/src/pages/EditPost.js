@@ -8,37 +8,40 @@ import ErrorMessage from '../components/ErrorMessage';
 import SuccessMessage from '../components/SuccessMessage';
 
 /**
- * EditPost component for editing existing blog posts.
+ * EditPost component for editing existing blog posts
  * 
- * This component handles the editing functionality for blog posts, including:
- * - Fetching the existing post data by ID
- * - Verifying user ownership of the post
- * - Providing a form interface for editing
- * - Handling post updates and navigation
+ * This component allows authenticated users to edit their own blog posts.
+ * It fetches the post data, validates ownership, and provides a form interface
+ * for updating the post content.
  * 
  * @component
- * @returns {JSX.Element} The EditPost component rendering either a loading state,
- *                        error message, or the edit post form
+ * @description A React component that renders an edit form for blog posts with
+ * authorization checks to ensure users can only edit their own stories.
  * 
  * @requires useParams - React Router hook to get the post ID from URL parameters
  * @requires useAuth - Custom hook to get the current authenticated user
  * @requires useNavigate - React Router hook for programmatic navigation
  * @requires postsAPI - API service for post-related operations
  * 
+ * @features
+ * - Fetches post data by ID on component mount
+ * - Validates post ownership (users can only edit their own posts)
+ * - Displays loading states during fetch and submit operations
+ * - Shows success/error messages for user feedback
+ * - Redirects to post detail page after successful update
+ * - Provides navigation back to the original post
+ * 
+ * @state {Object|null} post - The post data being edited
+ * @state {boolean} loading - Loading state for initial post fetch
+ * @state {boolean} submitLoading - Loading state for form submission
+ * @state {string} error - Error message to display to user
+ * @state {string} success - Success message to display to user
+ * 
+ * @returns {JSX.Element} The rendered edit post page with form interface
+ * 
  * @example
- * // Usage in React Router
+ * // Route definition in App.js
  * <Route path="/posts/:id/edit" element={<EditPost />} />
- * 
- * @states
- * @property {Object|null} post - The post data being edited
- * @property {boolean} loading - Loading state for initial post fetch
- * @property {boolean} submitLoading - Loading state for form submission
- * @property {string} error - Error message to display
- * @property {string} success - Success message to display
- * 
- * @security
- * - Verifies user ownership before allowing edits
- * - Redirects unauthorized users with error message
  */
 const EditPost = () => {
   const [post, setPost] = useState(null);
@@ -60,9 +63,8 @@ const EditPost = () => {
       setLoading(true);
       const response = await postsAPI.getById(id);
       
-      // Check if user owns this post
       if (response.data.author.id !== user.id) {
-        setError('You can only edit your own posts.');
+        setError('❌ You can only edit your own stories.');
         return;
       }
       
@@ -81,7 +83,7 @@ const EditPost = () => {
 
     try {
       const response = await postsAPI.update(id, formData);
-      setSuccess('Post updated successfully!');
+      setSuccess('🎉 Story updated successfully!');
       setTimeout(() => {
         navigate(`/posts/${response.data.id}`);
       }, 1500);
@@ -94,30 +96,64 @@ const EditPost = () => {
 
   if (loading) {
     return (
-      <div className="text-center py-8">
-        <LoadingSpinner size="large" />
+      <div className="main-container">
+        <div className="text-center" style={{ paddingTop: '4rem' }}>
+          <LoadingSpinner size="large" />
+          <p style={{ marginTop: '1rem', color: 'rgba(255,255,255,0.8)' }}>
+            Loading story for editing...
+          </p>
+        </div>
       </div>
     );
   }
 
   if (error && !post) {
     return (
-      <div className="max-w-4xl mx-auto px-4 py-8">
-        <ErrorMessage message={error} />
-        <Link to="/dashboard" className="text-blue-500 hover:text-blue-700">
-          ← Back to Dashboard
-        </Link>
+      <div className="main-container">
+        <div className="card text-center">
+          <div style={{ padding: '3rem' }}>
+            <div style={{ fontSize: '4rem', marginBottom: '1rem' }}>❌</div>
+            <ErrorMessage message={error} />
+            <Link to="/dashboard" className="btn btn-primary">
+              📊 Back to Dashboard
+            </Link>
+          </div>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-8">
-      <Link to={`/posts/${id}`} className="text-blue-500 hover:text-blue-700 mb-6 inline-block">
-        ← Back to Post
-      </Link>
+    <div className="main-container fade-in">
+      <div style={{ marginBottom: '2rem' }}>
+        <Link 
+          to={`/posts/${id}`} 
+          className="btn btn-secondary"
+          style={{ 
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '0.5rem',
+            textDecoration: 'none'
+          }}
+        >
+          ← Back to Story
+        </Link>
+      </div>
       
-      <h1 className="text-3xl font-bold mb-8">Edit Post</h1>
+      <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
+        <div style={{ fontSize: '4rem', marginBottom: '1rem' }}>✏️</div>
+        <h1 style={{ 
+          fontSize: '2.5rem', 
+          fontWeight: '700',
+          color: 'white',
+          marginBottom: '0.5rem'
+        }}>
+          Edit Your Story
+        </h1>
+        <p style={{ color: 'rgba(255,255,255,0.8)', fontSize: '1.1rem' }}>
+          Perfect your masterpiece
+        </p>
+      </div>
       
       <SuccessMessage message={success} />
       

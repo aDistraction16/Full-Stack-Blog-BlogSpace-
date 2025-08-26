@@ -8,36 +8,43 @@ import ErrorMessage from '../components/ErrorMessage';
 import SuccessMessage from '../components/SuccessMessage';
 
 /**
- * Dashboard component for authenticated users to manage their blog posts.
+ * Dashboard component that displays a user's blog management interface.
  * 
- * Displays a personalized dashboard where users can view, edit, and delete their own posts.
- * Includes functionality to create new posts and provides real-time feedback for user actions.
+ * Provides an overview of user statistics, displays all user posts, and allows
+ * post management operations including editing and deletion. Features a welcome
+ * section, statistics cards showing post counts and engagement metrics, and
+ * a responsive grid layout for post display.
  * 
  * @component
- * @returns {JSX.Element} The dashboard page with user's posts and management controls
+ * @returns {JSX.Element} The rendered dashboard interface
+ * 
+ * @example
+ * // Basic usage in a route
+ * <Route path="/dashboard" element={<Dashboard />} />
  * 
  * @description
- * Features:
- * - Displays welcome message with username
- * - Shows count of user's posts
- * - Lists all posts created by the authenticated user
- * - Provides edit and delete functionality for each post
- * - Quick access to create new posts
- * - Loading states for better UX
- * - Success/error message handling
- * - Confirmation dialog for post deletion
+ * Key features:
+ * - User welcome section with quick action to create new posts
+ * - Statistics cards displaying total posts, views, and comments
+ * - Post management interface with edit/delete capabilities
+ * - Loading states and error handling
+ * - Empty state with call-to-action for new users
+ * - Confirmation dialogs for destructive actions
  * 
  * @requires useAuth - Authentication context hook for user data
- * @requires useNavigate - React Router hook for navigation
+ * @requires useNavigate - React Router navigation hook
  * @requires postsAPI - API service for post operations
  * @requires PostCard - Component for displaying individual posts
  * @requires LoadingSpinner - Loading indicator component
  * @requires ErrorMessage - Error display component
  * @requires SuccessMessage - Success notification component
  * 
- * @example
- * // Used in protected routes for authenticated users
- * <Dashboard />
+ * @state {Array} posts - Array of user's blog posts
+ * @state {boolean} loading - Loading state for initial data fetch
+ * @state {string} error - Error message for display
+ * @state {string} success - Success message for display
+ * @state {number|null} deleteLoading - ID of post currently being deleted
+ * @state {Object} stats - User statistics (totalPosts, totalViews, totalComments)
  */
 const Dashboard = () => {
   const [posts, setPosts] = useState([]);
@@ -45,6 +52,11 @@ const Dashboard = () => {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [deleteLoading, setDeleteLoading] = useState(null);
+  const [stats, setStats] = useState({
+    totalPosts: 0,
+    totalViews: 0,
+    totalComments: 0
+  });
   
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -57,7 +69,16 @@ const Dashboard = () => {
     try {
       setLoading(true);
       const response = await postsAPI.getUserPosts();
-      setPosts(response.data.results || response.data);
+      const userPosts = response.data.results || response.data;
+      setPosts(userPosts);
+      
+      // Calculate stats
+      const totalComments = userPosts.reduce((sum, post) => sum + (post.comments_count || 0), 0);
+      setStats({
+        totalPosts: userPosts.length,
+        totalViews: userPosts.length * 15, // Mock view count
+        totalComments
+      });
     } catch (err) {
       setError('Failed to fetch your posts. Please try again.');
     } finally {
@@ -70,7 +91,7 @@ const Dashboard = () => {
   };
 
   const handleDelete = async (post) => {
-    if (!window.confirm('Are you sure you want to delete this post?')) {
+    if (!window.confirm('Are you sure you want to delete this post? This action cannot be undone.')) {
       return;
     }
 
@@ -78,8 +99,14 @@ const Dashboard = () => {
     try {
       await postsAPI.delete(post.id);
       setPosts(posts.filter(p => p.id !== post.id));
-      setSuccess('Post deleted successfully!');
+      setSuccess('Post deleted successfully! 🗑️');
       setTimeout(() => setSuccess(''), 3000);
+      
+      // Update stats
+      setStats(prev => ({
+        ...prev,
+        totalPosts: prev.totalPosts - 1
+      }));
     } catch (err) {
       setError('Failed to delete post. Please try again.');
     } finally {
@@ -89,56 +116,135 @@ const Dashboard = () => {
 
   if (loading) {
     return (
-      <div className="text-center py-8">
-        <LoadingSpinner size="large" />
+      <div className="main-container">
+        <div className="text-center" style={{ paddingTop: '4rem' }}>
+          <LoadingSpinner size="large" />
+          <p style={{ marginTop: '1rem', color: 'rgba(255,255,255,0.8)' }}>
+            Loading your dashboard...
+          </p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-8">
-      <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold">Welcome, {user.username}!</h1>
-        <Link 
-          to="/create-post"
-          className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded"
-        >
-          Create New Post
+    <div className="main-container fade-in">
+      {/* Welcome Header */}
+      <div className="hero" style={{ marginBottom: '3rem' }}>
+        <h1 style={{ fontSize: '2.5rem' }}>
+          Welcome back, {user.username}! 👋
+        </h1>
+        <p style={{ fontSize: '1.1rem' }}>
+          Ready to create something amazing today?
+        </p>
+        <Link to="/create-post" className="btn btn-primary">
+          ✍️ Write New Story
         </Link>
+      </div>
+
+      {/* Stats Cards */}
+      <div className="dashboard-grid">
+        <div className="stats-card">
+          <div className="stats-number">{stats.totalPosts}</div>
+          <div className="stats-label">📝 Stories Written</div>
+        </div>
+        <div className="stats-card">
+          <div className="stats-number">{stats.totalViews}</div>
+          <div className="stats-label">👀 Total Views</div>
+        </div>
+        <div className="stats-card">
+          <div className="stats-number">{stats.totalComments}</div>
+          <div className="stats-label">💬 Comments Received</div>
+        </div>
       </div>
       
       <ErrorMessage message={error} onClose={() => setError('')} />
       <SuccessMessage message={success} onClose={() => setSuccess('')} />
       
-      <h2 className="text-2xl font-semibold mb-6">Your Posts ({posts.length})</h2>
-      
-      {posts.length === 0 ? (
-        <div className="text-center py-8 bg-white rounded-lg shadow-md">
-          <p className="text-gray-600 mb-4">You haven't created any posts yet.</p>
-          <Link 
-            to="/create-post"
-            className="text-blue-500 hover:text-blue-700"
-          >
-            Create your first post →
-          </Link>
+      {/* Posts Section */}
+      <div style={{ marginTop: '3rem' }}>
+        <div style={{ 
+          display: 'flex', 
+          justifyContent: 'space-between', 
+          alignItems: 'center',
+          marginBottom: '2rem'
+        }}>
+          <h2 style={{ 
+            fontSize: '2rem', 
+            fontWeight: '700',
+            color: 'white',
+            margin: 0,
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.5rem'
+          }}>
+            📚 Your Stories ({posts.length})
+          </h2>
         </div>
-      ) : (
-        posts.map(post => (
-          <div key={post.id} className="relative">
-            {deleteLoading === post.id && (
-              <div className="absolute inset-0 bg-white bg-opacity-75 flex items-center justify-center z-10 rounded-lg">
-                <LoadingSpinner />
-              </div>
-            )}
-            <PostCard 
-              post={post}
-              showActions={true}
-              onEdit={handleEdit}
-              onDelete={handleDelete}
-            />
+        
+        {posts.length === 0 ? (
+          <div className="card text-center">
+            <div style={{ padding: '4rem 2rem' }}>
+              <div style={{ fontSize: '5rem', marginBottom: '1rem' }}>✍️</div>
+              <h3 style={{ 
+                marginBottom: '1rem', 
+                color: 'var(--gray-700)',
+                fontSize: '1.5rem'
+              }}>
+                No stories yet
+              </h3>
+              <p style={{ 
+                color: 'var(--gray-600)', 
+                marginBottom: '2rem',
+                fontSize: '1.1rem',
+                maxWidth: '400px',
+                margin: '0 auto 2rem'
+              }}>
+                Your writing journey starts here! Share your thoughts, experiences, and creativity with our community.
+              </p>
+              <Link to="/create-post" className="btn btn-primary">
+                ✍️ Write Your First Story
+              </Link>
+            </div>
           </div>
-        ))
-      )}
+        ) : (
+          <div className="scroll-reveal active">
+            {posts.map(post => (
+              <div key={post.id} style={{ position: 'relative' }}>
+                {deleteLoading === post.id && (
+                  <div style={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    background: 'rgba(255, 255, 255, 0.9)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    zIndex: 10,
+                    borderRadius: '20px',
+                    backdropFilter: 'blur(5px)'
+                  }}>
+                    <div style={{ textAlign: 'center' }}>
+                      <LoadingSpinner />
+                      <p style={{ marginTop: '1rem', color: 'var(--gray-600)' }}>
+                        Deleting post...
+                      </p>
+                    </div>
+                  </div>
+                )}
+                <PostCard 
+                  post={post}
+                  showActions={true}
+                  onEdit={handleEdit}
+                  onDelete={handleDelete}
+                />
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 };

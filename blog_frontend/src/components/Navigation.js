@@ -4,22 +4,26 @@ import { useAuth } from '../context/AuthContext';
 
 /**
  * Navigation component that renders the main navigation bar for the blog platform.
- * 
- * Displays different navigation options based on user authentication status:
- * - For authenticated users: Dashboard, Create Post, Welcome message, and Logout button
- * - For unauthenticated users: Login and Register links
- * 
- * Uses React Router for navigation and integrates with authentication context
- * to manage user state and logout functionality.
+ * Displays different navigation options based on user authentication status.
  * 
  * @component
- * @returns {JSX.Element} The rendered navigation bar with responsive layout
+ * @returns {JSX.Element} The navigation bar component
+ * 
+ * @description
+ * This component provides:
+ * - Logo/brand link to home page
+ * - Home navigation link
+ * - Authenticated users: Dashboard, Write Post, user welcome message, and logout button
+ * - Unauthenticated users: Login and Register links
  * 
  * @requires useAuth - Custom hook for authentication state management
  * @requires useNavigate - React Router hook for programmatic navigation
- * @requires Link - React Router component for client-side navigation
+ * @requires Link - React Router component for navigation links
+ * 
+ * @example
+ * // Usage in a layout component
+ * <Navigation />
  */
-
 const Navigation = () => {
   const { user, logout, isAuthenticated } = useAuth();
   const navigate = useNavigate();
@@ -33,39 +37,39 @@ const Navigation = () => {
     <nav className="nav">
       <div className="nav-container">
         <Link to="/" className="nav-logo">
-          Blog Platform
+          ✨ BlogSpace
         </Link>
         
         <div className="nav-links">
           <Link to="/" className="nav-link">
-            Home
+            🏠 Home
           </Link>
           
           {isAuthenticated ? (
             <>
               <Link to="/dashboard" className="nav-link">
-                Dashboard
+                📊 Dashboard
               </Link>
               <Link to="/create-post" className="nav-link">
-                Create Post
+                ✍️ Write
               </Link>
-              <span style={{ color: '#bfdbfe', fontSize: '0.875rem' }}>
-                Welcome, {user.username}!
+              <span className="user-welcome">
+                👋 {user.username}
               </span>
               <button 
                 onClick={handleLogout}
                 className="nav-button"
               >
-                Logout
+                🚪 Logout
               </button>
             </>
           ) : (
             <>
               <Link to="/login" className="nav-link">
-                Login
+                🔑 Login
               </Link>
               <Link to="/register" className="nav-button">
-                Register
+                🚀 Join Now
               </Link>
             </>
           )}

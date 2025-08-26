@@ -5,17 +5,14 @@ import PostForm from '../components/PostForm';
 import SuccessMessage from '../components/SuccessMessage';
 
 /**
- * CreatePost component for creating new blog posts
+ * CreatePost component for creating new blog posts/stories.
  * 
- * This component provides a form interface for users to create new blog posts.
+ * This component provides a form interface for users to create and publish new blog posts.
  * It handles form submission, loading states, error handling, and success feedback.
  * Upon successful post creation, it redirects the user to the newly created post.
  * 
  * @component
- * @returns {JSX.Element} A page layout containing a post creation form with:
- *   - Page title "Create New Post"
- *   - Success message display
- *   - PostForm component with submit handling
+ * @returns {JSX.Element} The CreatePost page component with form and status messages
  * 
  * @example
  * // Usage in a React Router setup
@@ -24,8 +21,15 @@ import SuccessMessage from '../components/SuccessMessage';
  * @requires useState - React hook for managing component state
  * @requires useNavigate - React Router hook for programmatic navigation
  * @requires postsAPI - API service for creating posts
- * @requires SuccessMessage - Component for displaying success notifications
- * @requires PostForm - Form component for post creation
+ * @requires PostForm - Child component for the post creation form
+ * @requires SuccessMessage - Child component for displaying success notifications
+ * 
+ * @state {boolean} loading - Indicates if post creation is in progress
+ * @state {string} error - Error message to display if post creation fails
+ * @state {string} success - Success message to display after successful post creation
+ * 
+ * @function handleSubmit - Async function that processes form submission and API calls
+ * @param {Object} formData - Form data containing post content and metadata
  */
 const CreatePost = () => {
   const [loading, setLoading] = useState(false);
@@ -40,7 +44,7 @@ const CreatePost = () => {
 
     try {
       const response = await postsAPI.create(formData);
-      setSuccess('Post created successfully!');
+      setSuccess('🎉 Story published successfully!');
       setTimeout(() => {
         navigate(`/posts/${response.data.id}`);
       }, 1500);
@@ -52,8 +56,21 @@ const CreatePost = () => {
   };
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold mb-8">Create New Post</h1>
+    <div className="main-container fade-in">
+      <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
+        <div style={{ fontSize: '4rem', marginBottom: '1rem' }}>✍️</div>
+        <h1 style={{ 
+          fontSize: '2.5rem', 
+          fontWeight: '700',
+          color: 'white',
+          marginBottom: '0.5rem'
+        }}>
+          Create New Story
+        </h1>
+        <p style={{ color: 'rgba(255,255,255,0.8)', fontSize: '1.1rem' }}>
+          Share your thoughts and experiences with the world
+        </p>
+      </div>
       
       <SuccessMessage message={success} />
       

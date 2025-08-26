@@ -1,13 +1,13 @@
 import React from 'react';
 
 /**
- * ErrorMessage component displays an error alert with an optional close button.
+ * ErrorMessage component displays error messages with optional close functionality.
  * 
  * @component
  * @param {Object} props - The component props
- * @param {string} props.message - The error message to display. If falsy, component returns null
- * @param {Function} [props.onClose] - Optional callback function called when close button is clicked
- * @returns {JSX.Element|null} Returns the error message alert or null if no message provided
+ * @param {string|null} props.message - The error message to display. If null or falsy, component returns null
+ * @param {Function} [props.onClose] - Optional callback function called when the close button is clicked
+ * @returns {JSX.Element|null} Returns the error message JSX element or null if no message is provided
  * 
  * @example
  * // Basic usage with message only
@@ -16,7 +16,7 @@ import React from 'react';
  * @example
  * // With close functionality
  * <ErrorMessage 
- *   message="Network error occurred" 
+ *   message="Login failed. Please try again." 
  *   onClose={() => setError(null)} 
  * />
  */
@@ -25,8 +25,9 @@ const ErrorMessage = ({ message, onClose }) => {
 
   return (
     <div className="alert alert-error">
-      <div className="flex justify-between items-center">
-        <span>{message}</span>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+        <span style={{ fontSize: '1.5rem' }}>❌</span>
+        <span style={{ flex: 1 }}>{message}</span>
         {onClose && (
           <button 
             onClick={onClose}
@@ -35,8 +36,13 @@ const ErrorMessage = ({ message, onClose }) => {
               border: 'none',
               fontSize: '1.5rem',
               cursor: 'pointer',
-              color: '#dc2626'
+              color: 'var(--error-color)',
+              padding: '0.25rem',
+              borderRadius: '4px',
+              transition: 'background-color 0.3s ease'
             }}
+            onMouseOver={(e) => e.target.style.backgroundColor = 'rgba(239, 68, 68, 0.1)'}
+            onMouseOut={(e) => e.target.style.backgroundColor = 'transparent'}
           >
             ×
           </button>

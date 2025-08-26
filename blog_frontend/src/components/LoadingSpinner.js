@@ -1,26 +1,27 @@
 import React from 'react';
 
 /**
- * A loading spinner component that displays a spinning animation to indicate loading state.
+ * A customizable loading spinner component that displays a rotating animation
+ * to indicate loading or processing states.
  * 
- * @component
  * @param {Object} props - The component props
- * @param {('small'|'medium'|'large')} [props.size='medium'] - The size of the spinner
- * @returns {JSX.Element} A div containing the loading spinner with appropriate styling
+ * @param {string} [props.size='medium'] - The size of the spinner. Can be 'small', 'medium', or 'large'
+ * @param {string} [props.color='currentColor'] - The color of the spinner's top border
+ * @returns {JSX.Element} A centered loading spinner element
  * 
  * @example
  * // Default medium spinner
  * <LoadingSpinner />
  * 
  * @example
- * // Small spinner
- * <LoadingSpinner size="small" />
+ * // Large red spinner
+ * <LoadingSpinner size="large" color="#ff0000" />
  * 
  * @example
- * // Large spinner
- * <LoadingSpinner size="large" />
+ * // Small blue spinner
+ * <LoadingSpinner size="small" color="blue" />
  */
-const LoadingSpinner = ({ size = 'medium' }) => {
+const LoadingSpinner = ({ size = 'medium', color = 'currentColor' }) => {
   const getSpinnerClass = () => {
     switch(size) {
       case 'small': return 'spinner spinner-small';
@@ -31,7 +32,13 @@ const LoadingSpinner = ({ size = 'medium' }) => {
 
   return (
     <div className="text-center">
-      <div className={getSpinnerClass()}></div>
+      <div 
+        className={getSpinnerClass()}
+        style={{ 
+          borderTopColor: color,
+          margin: '0 auto'
+        }}
+      ></div>
     </div>
   );
 };

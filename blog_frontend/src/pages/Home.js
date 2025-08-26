@@ -1,41 +1,47 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { postsAPI } from '../services/api';
+import { useAuth } from '../context/AuthContext';
 import PostCard from '../components/PostCard';
 import LoadingSpinner from '../components/LoadingSpinner';
 import ErrorMessage from '../components/ErrorMessage';
 
 /**
- * Home component that displays a paginated list of blog posts.
+ * Home component - Main landing page for the BlogSpace application
  * 
- * This component fetches and displays blog posts from the API with pagination support.
- * It handles loading states, error messages, and provides navigation between pages.
+ * Displays a hero section with welcome message and authentication buttons for non-authenticated users,
+ * followed by a paginated list of blog posts. Handles loading states, error messages, and provides
+ * navigation for creating new posts for authenticated users.
  * 
  * @component
- * @returns {JSX.Element} The rendered Home component containing:
- *   - A heading for the blog posts section
- *   - Loading spinner during data fetch
- *   - Error message display with dismiss functionality
- *   - List of blog posts rendered as PostCard components
- *   - Pagination controls (Previous/Next buttons) when applicable
+ * @returns {JSX.Element} The rendered Home page component
  * 
  * @example
- * // Basic usage
- * <Home />
+ * // Basic usage in routing
+ * <Route path="/" element={<Home />} />
  * 
  * @description
  * Features:
- * - Fetches posts on component mount
- * - Displays loading spinner while fetching data
- * - Shows error messages for failed API calls
- * - Renders posts using PostCard components
- * - Provides pagination when more than 10 posts exist
- * - Handles empty state when no posts are available
+ * - Hero section with call-to-action buttons for unauthenticated users
+ * - Paginated blog posts display with loading states
+ * - Error handling with dismissible error messages
+ * - Responsive design with smooth scrolling pagination
+ * - Conditional rendering based on authentication status
+ * - Empty state handling when no posts are available
+ * 
+ * @dependencies
+ * - useAuth hook for authentication state
+ * - postsAPI for fetching blog posts
+ * - PostCard component for individual post display
+ * - LoadingSpinner component for loading states
+ * - ErrorMessage component for error display
  */
 const Home = () => {
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [pagination, setPagination] = useState({});
+  const { isAuthenticated } = useAuth();
 
   useEffect(() => {
     fetchPosts();
@@ -61,55 +67,120 @@ const Home = () => {
 
   const handlePageChange = (page) => {
     fetchPosts(page);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   if (loading) {
     return (
-      <div className="text-center py-8">
-        <LoadingSpinner size="large" />
+      <div className="main-container">
+        <div className="text-center" style={{ paddingTop: '4rem' }}>
+          <LoadingSpinner size="large" />
+          <p style={{ marginTop: '1rem', color: 'rgba(255,255,255,0.8)' }}>
+            Loading amazing content...
+          </p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold mb-8">Latest Blog Posts</h1>
-      
-      <ErrorMessage message={error} onClose={() => setError('')} />
-      
-      {posts.length === 0 ? (
-        <div className="text-center py-8">
-          <p className="text-gray-600">No posts available yet.</p>
+    <div className="main-container fade-in">
+      {/* Hero Section */}
+      <div className="hero">
+        <h1>Welcome to BlogSpace</h1>
+        <p>
+          Discover amazing stories, share your thoughts, and connect with writers from around the world.
+          Join our vibrant community of creators and readers.
+        </p>
+        {!isAuthenticated && (
+          <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}>
+            <Link to="/register" className="btn btn-primary">
+              🚀 Start Writing Today
+            </Link>
+            <Link to="/login" className="btn btn-secondary">
+              🔑 Sign In
+            </Link>
+          </div>
+        )}
+      </div>
+
+      {/* Posts Section */}
+      <div style={{ marginBottom: '2rem' }}>
+        <div style={{ 
+          display: 'flex', 
+          justifyContent: 'space-between', 
+          alignItems: 'center',
+          marginBottom: '2rem'
+        }}>
+          <h2 style={{ 
+            fontSize: '2rem', 
+            fontWeight: '700',
+            color: 'white',
+            margin: 0
+          }}>
+            📚 Latest Stories
+          </h2>
+          {isAuthenticated && (
+            <Link to="/create-post" className="btn btn-primary">
+              ✍️ Write Story
+            </Link>
+          )}
         </div>
-      ) : (
-        <>
-          {posts.map(post => (
-            <PostCard key={post.id} post={post} />
-          ))}
-          
-          {/* Pagination */}
-          {pagination.count > 10 && (
-            <div className="flex justify-center space-x-2 mt-8">
-              {pagination.previous && (
-                <button
-                  onClick={() => handlePageChange(pagination.current - 1)}
-                  className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-                >
-                  Previous
-                </button>
-              )}
-              {pagination.next && (
-                <button
-                  onClick={() => handlePageChange(pagination.current + 1)}
-                  className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-                >
-                  Next
-                </button>
+        
+        <ErrorMessage message={error} onClose={() => setError('')} />
+        
+        {posts.length === 0 ? (
+          <div className="card text-center">
+            <div style={{ padding: '3rem' }}>
+              <div style={{ fontSize: '4rem', marginBottom: '1rem' }}>📝</div>
+              <h3 style={{ marginBottom: '1rem', color: 'var(--gray-700)' }}>
+                No stories yet
+              </h3>
+              <p style={{ color: 'var(--gray-600)', marginBottom: '2rem' }}>
+                Be the first to share your amazing story with the community!
+              </p>
+              {isAuthenticated && (
+                <Link to="/create-post" className="btn btn-primary">
+                  ✍️ Write First Story
+                </Link>
               )}
             </div>
-          )}
-        </>
-      )}
+          </div>
+        ) : (
+          <>
+            <div className="scroll-reveal active">
+              {posts.map(post => (
+                <PostCard key={post.id} post={post} />
+              ))}
+            </div>
+            
+            {/* Enhanced Pagination */}
+            {pagination.count > 10 && (
+              <div className="pagination">
+                {pagination.previous && (
+                  <button
+                    onClick={() => handlePageChange(pagination.current - 1)}
+                    className="pagination-btn"
+                  >
+                    ← Previous
+                  </button>
+                )}
+                <span className="pagination-btn" style={{ background: 'var(--primary-color)', color: 'white' }}>
+                  Page {pagination.current}
+                </span>
+                {pagination.next && (
+                  <button
+                    onClick={() => handlePageChange(pagination.current + 1)}
+                    className="pagination-btn"
+                  >
+                    Next →
+                  </button>
+                )}
+              </div>
+            )}
+          </>
+        )}
+      </div>
     </div>
   );
 };
