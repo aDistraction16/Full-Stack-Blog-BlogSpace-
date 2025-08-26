@@ -1,5 +1,5 @@
-import React, { useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { useScrollAnimation } from './hooks/useScrollAnimation';
 import Navigation from './components/Navigation';
@@ -13,20 +13,21 @@ import Dashboard from './pages/Dashboard';
 import CreatePost from './pages/CreatePost';
 import PostDetail from './pages/PostDetail';
 import EditPost from './pages/EditPost';
+import Search from './pages/Search';
+import UserProfile from './pages/UserProfile';
 
 /**
  * Main application content component that handles routing and page layout.
  * 
- * This component sets up the primary routing structure for the blog platform,
- * including public routes (home, login, register, post details), protected routes
- * (dashboard, create/edit posts), and a catch-all 404 route. It also applies
- * scroll animations and provides the main layout structure with navigation.
+ * This component sets up the application's routing structure using React Router,
+ * including both public and protected routes. It also applies scroll animations
+ * and provides the main layout structure with navigation and content areas.
  * 
  * @component
- * @returns {JSX.Element} The main application content with navigation and routed pages
+ * @returns {JSX.Element} The main application layout with navigation and routed content
  * 
  * @example
- * // Used within the main App component
+ * // Usage within App component
  * function App() {
  *   return (
  *     <Router>
@@ -35,9 +36,18 @@ import EditPost from './pages/EditPost';
  *   );
  * }
  * 
- * @see {@link Navigation} - Top navigation component
- * @see {@link ProtectedRoute} - Route wrapper for authenticated users only
- * @see {@link useScrollAnimation} - Custom hook for scroll-based animations
+ * @description
+ * Routes included:
+ * - "/" - Home page (public)
+ * - "/login" - User login (public)
+ * - "/register" - User registration (public)
+ * - "/posts/:id" - Individual post view (public)
+ * - "/search" - Search functionality (public)
+ * - "/profile/:username" - User profile view (public)
+ * - "/dashboard" - User dashboard (protected)
+ * - "/create-post" - Post creation (protected)
+ * - "/edit-post/:id" - Post editing (protected)
+ * - "*" - 404 Not Found page (fallback)
  */
 function AppContent() {
   useScrollAnimation();
@@ -51,6 +61,8 @@ function AppContent() {
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/posts/:id" element={<PostDetail />} />
+          <Route path="/search" element={<Search />} />
+          <Route path="/profile/:username" element={<UserProfile />} />
           
           {/* Protected Routes */}
           <Route 
@@ -109,12 +121,12 @@ const NotFound = () => (
           The page you're looking for seems to have drifted away into the digital cosmos.
         </p>
         <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}>
-          <a href="/" className="btn btn-primary">
+          <Link to="/" className="btn btn-primary">
             🏠 Go Home
-          </a>
-          <a href="/dashboard" className="btn btn-secondary">
+          </Link>
+          <Link to="/dashboard" className="btn btn-secondary">
             📊 Dashboard
-          </a>
+          </Link>
         </div>
       </div>
     </div>

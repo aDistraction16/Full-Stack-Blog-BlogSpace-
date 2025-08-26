@@ -1,40 +1,45 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { postsAPI } from '../services/api';
-import { useAuth } from '../context/AuthContext';
 import PostCard from '../components/PostCard';
 import LoadingSpinner from '../components/LoadingSpinner';
 import ErrorMessage from '../components/ErrorMessage';
+import { useAuth } from '../context/AuthContext';
 
 /**
- * Home component - Main landing page for the BlogSpace application
+ * Home component - Main landing page for the blog platform
  * 
- * Displays a hero section with welcome message and authentication buttons for non-authenticated users,
- * followed by a paginated list of blog posts. Handles loading states, error messages, and provides
- * navigation for creating new posts for authenticated users.
+ * Displays a hero section with welcome message and call-to-action buttons,
+ * followed by a paginated list of blog posts. Handles loading states,
+ * error messages, and provides different UI based on authentication status.
  * 
  * @component
- * @returns {JSX.Element} The rendered Home page component
+ * @returns {JSX.Element} The rendered home page component
  * 
  * @example
- * // Basic usage in routing
+ * // Basic usage in App component
  * <Route path="/" element={<Home />} />
  * 
  * @description
  * Features:
- * - Hero section with call-to-action buttons for unauthenticated users
- * - Paginated blog posts display with loading states
+ * - Hero section with gradient background and emoji decorations
+ * - Authentication-aware UI (different buttons for logged in/out users)
+ * - Paginated blog posts with loading spinner
  * - Error handling with dismissible error messages
- * - Responsive design with smooth scrolling pagination
- * - Conditional rendering based on authentication status
- * - Empty state handling when no posts are available
+ * - Empty state with call-to-action when no posts exist
+ * - Responsive design with smooth scrolling on page changes
+ * - Post count display in section header
  * 
- * @dependencies
- * - useAuth hook for authentication state
- * - postsAPI for fetching blog posts
- * - PostCard component for individual post display
- * - LoadingSpinner component for loading states
- * - ErrorMessage component for error display
+ * @requires useAuth - Custom hook for authentication state
+ * @requires postsAPI - API service for fetching posts
+ * @requires PostCard - Component for rendering individual posts
+ * @requires LoadingSpinner - Component for loading states
+ * @requires Link - React Router Link component for navigation
+ * 
+ * @state {Array} posts - Array of blog post objects
+ * @state {boolean} loading - Loading state for API requests
+ * @state {string} error - Error message string
+ * @state {Object} pagination - Pagination metadata (count, totalPages, currentPage, hasNext, hasPrevious)
  */
 const Home = () => {
   const [posts, setPosts] = useState([]);
@@ -50,16 +55,30 @@ const Home = () => {
   const fetchPosts = async (page = 1) => {
     try {
       setLoading(true);
+      setError('');
+      
       const response = await postsAPI.getAll(page);
-      setPosts(response.data.results);
-      setPagination({
-        count: response.data.count,
-        next: response.data.next,
-        previous: response.data.previous,
-        current: page
-      });
+      
+      if (response.data && response.data.results) {
+        setPosts(response.data.results);
+        setPagination({
+          count: response.data.count || 0,
+          totalPages: Math.ceil((response.data.count || 0) / 10),
+          currentPage: page,
+          hasNext: !!response.data.next,
+          hasPrevious: !!response.data.previous
+        });
+      } else if (Array.isArray(response.data)) {
+        setPosts(response.data);
+        setPagination({});
+      } else {
+        setPosts([]);
+        setError('Unexpected response format from server');
+      }
     } catch (err) {
-      setError('Failed to fetch posts. Please try again.');
+      console.error('❌ Fetch posts error:', err);
+      setError(`Failed to load posts: ${err.message}`);
+      setPosts([]);
     } finally {
       setLoading(false);
     }
@@ -70,116 +89,260 @@ const Home = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  if (loading) {
-    return (
-      <div className="main-container">
-        <div className="text-center" style={{ paddingTop: '4rem' }}>
-          <LoadingSpinner size="large" />
-          <p style={{ marginTop: '1rem', color: 'rgba(255,255,255,0.8)' }}>
-            Loading amazing content...
-          </p>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="main-container fade-in">
-      {/* Hero Section */}
-      <div className="hero">
-        <h1>Welcome to BlogSpace</h1>
-        <p>
-          Discover amazing stories, share your thoughts, and connect with writers from around the world.
-          Join our vibrant community of creators and readers.
-        </p>
-        {!isAuthenticated && (
-          <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}>
-            <Link to="/register" className="btn btn-primary">
-              🚀 Start Writing Today
-            </Link>
-            <Link to="/login" className="btn btn-secondary">
-              🔑 Sign In
-            </Link>
+    <div style={{
+      minHeight: '100vh',
+      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+      padding: '20px'
+    }}>
+      <div style={{
+        maxWidth: '800px',
+        margin: '0 auto',
+        background: 'rgba(255, 255, 255, 0.95)',
+        borderRadius: '20px',
+        padding: '2rem',
+        minHeight: '90vh'
+      }}>
+        {/* Hero Section */}
+        <div style={{
+          textAlign: 'center',
+          marginBottom: '3rem',
+          padding: '2rem',
+          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+          borderRadius: '15px',
+          color: 'white'
+        }}>
+          <div style={{ fontSize: '4rem', marginBottom: '1rem' }}>✨</div>
+          <h1 style={{ fontSize: '2.5rem', fontWeight: '700', marginBottom: '1rem' }}>
+            Welcome to BlogSpace
+          </h1>
+          <p style={{ fontSize: '1.2rem', opacity: 0.9 }}>
+            Discover amazing stories from our community of writers
+          </p>
+          
+          {!isAuthenticated && (
+            <div style={{ marginTop: '2rem' }}>
+              <Link 
+                to="/register" 
+                style={{
+                  display: 'inline-block',
+                  background: 'rgba(255, 255, 255, 0.2)',
+                  color: 'white',
+                  padding: '0.75rem 1.5rem',
+                  borderRadius: '12px',
+                  textDecoration: 'none',
+                  marginRight: '1rem',
+                  border: '2px solid rgba(255, 255, 255, 0.3)'
+                }}
+              >
+                🚀 Join Our Community
+              </Link>
+              <Link 
+                to="/login"
+                style={{
+                  display: 'inline-block',
+                  background: 'rgba(255, 255, 255, 0.1)',
+                  color: 'white',
+                  padding: '0.75rem 1.5rem',
+                  borderRadius: '12px',
+                  textDecoration: 'none',
+                  border: '2px solid rgba(255, 255, 255, 0.3)'
+                }}
+              >
+                🔑 Sign In
+              </Link>
+            </div>
+          )}
+          
+          {isAuthenticated && (
+            <div style={{ marginTop: '2rem' }}>
+              <Link 
+                to="/create-post"
+                style={{
+                  display: 'inline-block',
+                  background: 'rgba(255, 255, 255, 0.2)',
+                  color: 'white',
+                  padding: '0.75rem 1.5rem',
+                  borderRadius: '12px',
+                  textDecoration: 'none',
+                  border: '2px solid rgba(255, 255, 255, 0.3)'
+                }}
+              >
+                ✍️ Share Your Story
+              </Link>
+            </div>
+          )}
+        </div>
+
+        {/* Error Message */}
+        {error && (
+          <div style={{
+            background: '#FEE2E2',
+            color: '#DC2626',
+            padding: '1rem',
+            borderRadius: '8px',
+            marginBottom: '2rem',
+            border: '1px solid #FECACA'
+          }}>
+            {error}
+            <button 
+              onClick={() => setError('')}
+              style={{
+                float: 'right',
+                background: 'none',
+                border: 'none',
+                color: '#DC2626',
+                fontSize: '1.2rem',
+                cursor: 'pointer'
+              }}
+            >
+              ×
+            </button>
           </div>
         )}
-      </div>
 
-      {/* Posts Section */}
-      <div style={{ marginBottom: '2rem' }}>
-        <div style={{ 
-          display: 'flex', 
-          justifyContent: 'space-between', 
-          alignItems: 'center',
-          marginBottom: '2rem'
-        }}>
+        {/* Posts Section */}
+        <div>
           <h2 style={{ 
             fontSize: '2rem', 
             fontWeight: '700',
-            color: 'white',
-            margin: 0
+            color: '#1F2937',
+            marginBottom: '2rem',
+            textAlign: 'center'
           }}>
-            📚 Latest Stories
+            📖 Latest Stories ({posts?.length || 0} found)
           </h2>
-          {isAuthenticated && (
-            <Link to="/create-post" className="btn btn-primary">
-              ✍️ Write Story
-            </Link>
-          )}
-        </div>
-        
-        <ErrorMessage message={error} onClose={() => setError('')} />
-        
-        {posts.length === 0 ? (
-          <div className="card text-center">
-            <div style={{ padding: '3rem' }}>
+
+          {loading ? (
+            <div style={{ textAlign: 'center', padding: '3rem 0' }}>
+              <LoadingSpinner size="large" />
+              <p style={{ marginTop: '1rem', color: '#6B7280' }}>
+                Loading amazing stories...
+              </p>
+            </div>
+          ) : posts && posts.length === 0 ? (
+            <div style={{
+              textAlign: 'center',
+              padding: '4rem 2rem',
+              background: '#F9FAFB',
+              borderRadius: '12px',
+              border: '1px solid #E5E7EB'
+            }}>
               <div style={{ fontSize: '4rem', marginBottom: '1rem' }}>📝</div>
-              <h3 style={{ marginBottom: '1rem', color: 'var(--gray-700)' }}>
+              <h3 style={{ 
+                marginBottom: '1rem', 
+                color: '#374151',
+                fontSize: '1.5rem'
+              }}>
                 No stories yet
               </h3>
-              <p style={{ color: 'var(--gray-600)', marginBottom: '2rem' }}>
-                Be the first to share your amazing story with the community!
+              <p style={{ 
+                color: '#6B7280', 
+                marginBottom: '2rem',
+                fontSize: '1.1rem'
+              }}>
+                Be the first to share your story with our community!
               </p>
-              {isAuthenticated && (
-                <Link to="/create-post" className="btn btn-primary">
-                  ✍️ Write First Story
+              {isAuthenticated ? (
+                <Link 
+                  to="/create-post"
+                  style={{
+                    display: 'inline-block',
+                    background: '#4F46E5',
+                    color: 'white',
+                    padding: '0.75rem 1.5rem',
+                    borderRadius: '8px',
+                    textDecoration: 'none'
+                  }}
+                >
+                  ✍️ Write the First Story
+                </Link>
+              ) : (
+                <Link 
+                  to="/register"
+                  style={{
+                    display: 'inline-block',
+                    background: '#4F46E5',
+                    color: 'white',
+                    padding: '0.75rem 1.5rem',
+                    borderRadius: '8px',
+                    textDecoration: 'none'
+                  }}
+                >
+                  🚀 Join to Write Stories
                 </Link>
               )}
             </div>
-          </div>
-        ) : (
-          <>
-            <div className="scroll-reveal active">
-              {posts.map(post => (
-                <PostCard key={post.id} post={post} />
-              ))}
-            </div>
-            
-            {/* Enhanced Pagination */}
-            {pagination.count > 10 && (
-              <div className="pagination">
-                {pagination.previous && (
-                  <button
-                    onClick={() => handlePageChange(pagination.current - 1)}
-                    className="pagination-btn"
-                  >
-                    ← Previous
-                  </button>
-                )}
-                <span className="pagination-btn" style={{ background: 'var(--primary-color)', color: 'white' }}>
-                  Page {pagination.current}
-                </span>
-                {pagination.next && (
-                  <button
-                    onClick={() => handlePageChange(pagination.current + 1)}
-                    className="pagination-btn"
-                  >
-                    Next →
-                  </button>
-                )}
+          ) : (
+            <>
+              {/* Posts List */}
+              <div style={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '1.5rem'
+              }}>
+                {posts.map((post, index) => (
+                  <PostCard 
+                    key={post.id || `post-${index}`} 
+                    post={post} 
+                  />
+                ))}
               </div>
-            )}
-          </>
-        )}
+
+              {/* Pagination */}
+              {pagination.totalPages > 1 && (
+                <div style={{
+                  display: 'flex',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  gap: '1rem',
+                  marginTop: '3rem',
+                  padding: '2rem 0'
+                }}>
+                  {pagination.hasPrevious && (
+                    <button
+                      onClick={() => handlePageChange(pagination.currentPage - 1)}
+                      style={{
+                        background: '#F3F4F6',
+                        color: '#374151',
+                        border: '2px solid #E5E7EB',
+                        padding: '0.75rem 1.5rem',
+                        borderRadius: '8px',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      ← Previous
+                    </button>
+                  )}
+                  <span style={{
+                    background: '#4F46E5',
+                    color: 'white',
+                    padding: '0.75rem 1.5rem',
+                    borderRadius: '8px',
+                    border: '2px solid #4F46E5'
+                  }}>
+                    Page {pagination.currentPage} of {pagination.totalPages}
+                  </span>
+                  {pagination.hasNext && (
+                    <button
+                      onClick={() => handlePageChange(pagination.currentPage + 1)}
+                      style={{
+                        background: '#F3F4F6',
+                        color: '#374151',
+                        border: '2px solid #E5E7EB',
+                        padding: '0.75rem 1.5rem',
+                        borderRadius: '8px',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      Next →
+                    </button>
+                  )}
+                </div>
+              )}
+            </>
+          )}
+        </div>
       </div>
     </div>
   );

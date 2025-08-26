@@ -561,6 +561,11 @@ a:hover {
     justify-content: center;
   }
   
+  /* Hide search bar in navigation on mobile - it will be accessible via search page */
+  .nav-container > div:nth-child(2) {
+    display: none;
+  }
+  
   .form-container {
     margin: 1rem;
     padding: 2rem;
