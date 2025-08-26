@@ -1,0 +1,91 @@
+[
+  {
+    "model": "auth.user",
+    "pk": 1,
+    "fields": {
+      "username": "john_doe",
+      "email": "john@example.com",
+      "first_name": "John",
+      "last_name": "Doe",
+      "is_staff": false,
+      "is_active": true,
+      "date_joined": "2024-01-01T10:00:00Z"
+    }
+  },
+  {
+    "model": "auth.user",
+    "pk": 2,
+    "fields": {
+      "username": "jane_smith",
+      "email": "jane@example.com",
+      "first_name": "Jane",
+      "last_name": "Smith",
+      "is_staff": false,
+      "is_active": true,
+      "date_joined": "2024-01-02T11:00:00Z"
+    }
+  },
+  {
+    "model": "blog_api.post",
+    "pk": 1,
+    "fields": {
+      "title": "Welcome to Our Blog Platform",
+      "content": "This is the first post on our amazing blog platform! Here you can share your thoughts, ideas, and connect with other writers. We're excited to have you as part of our community.",
+      "author": 1,
+      "created_at": "2024-01-01T12:00:00Z",
+      "updated_at": "2024-01-01T12:00:00Z"
+    }
+  },
+  {
+    "model": "blog_api.post",
+    "pk": 2,
+    "fields": {
+      "title": "Getting Started with Writing",
+      "content": "Writing is a wonderful way to express yourself and share your knowledge with others. Whether you're writing technical tutorials, personal stories, or creative fiction, this platform provides you with all the tools you need to craft engaging content.",
+      "author": 2,
+      "created_at": "2024-01-02T14:30:00Z",
+      "updated_at": "2024-01-02T14:30:00Z"
+    }
+  },
+  {
+    "model": "blog_api.post",
+    "pk": 3,
+    "fields": {
+      "title": "Tips for Better Blog Posts",
+      "content": "Here are some tips to make your blog posts more engaging: 1. Start with a compelling headline, 2. Use clear and concise language, 3. Include examples and stories, 4. Break up text with headings and lists, 5. End with a call to action or question to encourage discussion.",
+      "author": 1,
+      "created_at": "2024-01-03T09:15:00Z",
+      "updated_at": "2024-01-03T09:15:00Z"
+    }
+  },
+  {
+    "model": "blog_api.comment",
+    "pk": 1,
+    "fields": {
+      "content": "Great post! I'm excited to start blogging here.",
+      "author": 2,
+      "post": 1,
+      "created_at": "2024-01-01T13:00:00Z"
+    }
+  },
+  {
+    "model": "blog_api.comment",
+    "pk": 2,
+    "fields": {
+      "content": "Thanks for the helpful tips! This will definitely improve my writing.",
+      "author": 2,
+      "post": 3,
+      "created_at": "2024-01-03T10:00:00Z"
+    }
+  },
+  {
+    "model": "blog_api.comment",
+    "pk": 3,
+    "fields": {
+      "content": "I love the clean interface of this platform. Looking forward to sharing more content!",
+      "author": 1,
+      "post": 2,
+      "created_at": "2024-01-02T15:00:00Z"
+    }
+  }
+]
