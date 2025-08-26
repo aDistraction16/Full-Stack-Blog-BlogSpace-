@@ -5,6 +5,8 @@ const API_BASE_URL = 'http://localhost:8000/api';
 // Create axios instance
 const api = axios.create({
   baseURL: API_BASE_URL,
+  timeout: 10000,
+  retry: 3,
 });
 
 // Add auth token to requests

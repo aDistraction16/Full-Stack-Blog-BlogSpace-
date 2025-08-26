@@ -112,8 +112,10 @@ SIMPLE_JWT = {
 #CORS Configuration
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
+    "http://127.0.0.1:3000",
+    "http://192.168.0.77:3000",  # Add this
 ]
-
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', '192.168.0.77']
 CORS_ALLOW_CREDENTIALS = True
 
 # Password validation
@@ -156,3 +158,9 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+if not DEBUG:
+    SECURE_SSL_REDIRECT = True
+    SECURE_HSTS_SECONDS = 31536000
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True
